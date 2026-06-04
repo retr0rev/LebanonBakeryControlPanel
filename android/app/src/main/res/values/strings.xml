@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LebanonBakeryDashboard</string>
+    <string name="title_activity_main">LebanonBakeryDashboard</string>
+    <string name="package_name">com.lebanonbakery.dashboard</string>
+    <string name="custom_url_scheme">com.lebanonbakery.dashboard</string>
+</resources>

@@ -1,0 +1,36 @@
+CREATE TABLE IF NOT EXISTS products (
+  id INTEGER PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT DEFAULT '',
+  price DECIMAL(10,2) DEFAULT 0,
+  ingredients TEXT DEFAULT '',
+  image VARCHAR(500),
+  category VARCHAR(100) DEFAULT '',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS inventory (
+  id SERIAL PRIMARY KEY,
+  product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+  quantity INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sales (
+  id SERIAL PRIMARY KEY,
+  product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+  quantity INTEGER NOT NULL DEFAULT 1,
+  total_price DECIMAL(10,2) NOT NULL,
+  sold_at TIMESTAMP DEFAULT NOW(),
+  notes TEXT DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS workers (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  job VARCHAR(255) NOT NULL,
+  weekly_salary DECIMAL(10,2) NOT NULL,
+  phone VARCHAR(50) DEFAULT '',
+  created_at TIMESTAMP DEFAULT NOW()
+);
