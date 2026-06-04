@@ -8,7 +8,6 @@ interface Worker {
   job: string
   weekly_salary: number
   phone: string
-  created_at: string
 }
 
 const workers = ref<Worker[]>([])
@@ -21,13 +20,7 @@ onMounted(() => loadWorkers())
 
 async function loadWorkers() {
   loading.value = true
-  try {
-    workers.value = await api.workers.list()
-  } catch (e) {
-    console.error(e)
-  } finally {
-    loading.value = false
-  }
+  try { workers.value = await api.workers.list() } catch (e) { console.error(e) } finally { loading.value = false }
 }
 
 function openAdd() {
@@ -42,10 +35,7 @@ function openEdit(w: Worker) {
   showModal.value = true
 }
 
-function closeModal() {
-  showModal.value = false
-  editingWorker.value = null
-}
+function closeModal() { showModal.value = false; editingWorker.value = null }
 
 async function save() {
   if (!form.value.name || !form.value.job || !form.value.weekly_salary) return
@@ -57,52 +47,44 @@ async function save() {
     }
     closeModal()
     await loadWorkers()
-  } catch (e) {
-    console.error(e)
-  }
+  } catch (e) { console.error(e) }
 }
 
 async function deleteWorker(id: number) {
   if (!confirm('هل أنت متأكد من حذف هذا العامل؟')) return
-  try {
-    await api.workers.delete(id)
-    await loadWorkers()
-  } catch (e) {
-    console.error(e)
-  }
+  try { await api.workers.delete(id); await loadWorkers() } catch (e) { console.error(e) }
 }
 </script>
 
 <template>
   <div>
     <div class="page-header">
-      <h2>👷 العمال</h2>
+      <h2 style="margin:0">👷 العمال</h2>
       <button class="btn small" @click="openAdd">➕ إضافة</button>
     </div>
 
     <div v-if="loading" class="loading">جاري التحميل...</div>
 
     <div v-else-if="workers.length" style="display: flex; flex-direction: column; gap: 10px;">
-      <div v-for="w in workers" :key="w.id"
-           style="background: var(--bg-card); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow);">
+      <div v-for="w in workers" :key="w.id" class="section" style="padding: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
           <div>
-            <div style="font-weight: 700; font-size: 0.95rem;">{{ w.name }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-light);">{{ w.job }}</div>
+            <div style="font-weight: 700; font-size: 0.9rem;">{{ w.name }}</div>
+            <div style="font-size: 0.72rem; color: var(--accent); font-weight: 600;">{{ w.job }}</div>
           </div>
           <div style="text-align: left;">
-            <div style="font-weight: 800; color: var(--primary); font-size: 0.9rem;">{{ w.weekly_salary.toLocaleString('ar-LB') }} ل.س</div>
-            <div style="font-size: 0.7rem; color: var(--text-light);">أسبوعياً</div>
+            <div style="font-weight: 800; color: var(--primary); font-size: 0.85rem;">{{ w.weekly_salary.toLocaleString('ar-LB') }}</div>
+            <div style="font-size: 0.6rem; color: var(--text-muted);">ل.س / أسبوع</div>
           </div>
         </div>
-        <div v-if="w.phone" style="font-size: 0.78rem; color: var(--text-light); margin-bottom: 8px;">📞 {{ w.phone }}</div>
-        <div class="actions" style="justify-content: flex-end;">
-          <button class="btn small" @click="openEdit(w)">تعديل</button>
-          <button class="btn small danger" @click="deleteWorker(w.id!)">حذف</button>
+        <div v-if="w.phone" style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px;">📞 {{ w.phone }}</div>
+        <div class="actions" style="justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 8px;">
+          <button class="btn small" @click="openEdit(w)">✏️ تعديل</button>
+          <button class="btn small danger" @click="deleteWorker(w.id!)">🗑️ حذف</button>
         </div>
       </div>
     </div>
-    <p v-else style="text-align: center; padding: 2rem; color: var(--text-light);">لا يوجد عمال بعد</p>
+    <p v-else style="text-align: center; padding: 40px 16px; color: var(--text-muted);">لا يوجد عمال بعد</p>
 
     <Transition name="modal">
       <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
@@ -115,7 +97,7 @@ async function deleteWorker(id: number) {
             <label>الهاتف <input v-model="form.phone" /></label>
             <div class="form-actions">
               <button type="submit" class="btn">💾 حفظ</button>
-              <button type="button" class="btn outline" @click="closeModal">❌ إلغاء</button>
+              <button type="button" class="btn outline" @click="closeModal">إلغاء</button>
             </div>
           </form>
         </div>

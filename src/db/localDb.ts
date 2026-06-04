@@ -37,6 +37,17 @@ export interface Worker {
   created_at: string
 }
 
+const INITIAL_PRODUCTS: Product[] = [
+  { id: 1, name: 'بيتي فور', description: '', price: 450, ingredients: '', image: null, category: 'حلويات', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 2, name: 'برازق', description: '', price: 450, ingredients: '', image: null, category: 'حلويات', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 3, name: 'غريبة', description: '', price: 450, ingredients: '', image: null, category: 'حلويات', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 4, name: 'كعك تمر', description: '', price: 450, ingredients: '', image: null, category: 'حلويات', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 5, name: 'كعك مالح بجبنة', description: '', price: 450, ingredients: '', image: null, category: 'حلويات', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 6, name: 'كعك مفخر بحليب', description: '', price: 350, ingredients: '', image: null, category: 'كعك', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 7, name: 'كعك مفخر', description: '', price: 300, ingredients: '', image: null, category: 'كعك', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 8, name: 'كعك بشمرة ويانسون', description: '', price: 300, ingredients: '', image: null, category: 'كعك', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+]
+
 class BakeryDB extends Dexie {
   products!: Table<Product, number>
   inventory!: Table<Inventory, number>
@@ -56,15 +67,22 @@ class BakeryDB extends Dexie {
 
 export const db = new BakeryDB()
 
-export async function seedInventory() {
-  const count = await db.inventory.count()
-  if (count > 0) return
-  const products = await db.products.toArray()
+export async function seedInitialData() {
+  const productCount = await db.products.count()
   const now = new Date().toISOString()
-  for (const p of products) {
-    const exists = await db.inventory.where('product_id').equals(p.id).first()
-    if (!exists) {
-      await db.inventory.add({ product_id: p.id, quantity: 0, updated_at: now })
+
+  if (productCount === 0) {
+    await db.products.bulkAdd(INITIAL_PRODUCTS)
+    for (const p of INITIAL_PRODUCTS) {
+      await db.inventory.add({ product_id: p.id, quantity: 50, updated_at: now })
+    }
+  } else {
+    const invCount = await db.inventory.count()
+    if (invCount === 0) {
+      const products = await db.products.toArray()
+      for (const p of products) {
+        await db.inventory.add({ product_id: p.id, quantity: 50, updated_at: now })
+      }
     }
   }
 }

@@ -1,10 +1,24 @@
-import { db, seedInventory, type Product, type Worker } from '@/db/localDb'
+import { db, seedInitialData, type Product, type Worker } from '@/db/localDb'
 
 const API_BASE = 'https://sadek-s-bakery-production.up.railway.app'
 
+let initialized = false
+
+async function ensureData() {
+  if (!initialized) {
+    await seedInitialData()
+    initialized = true
+  }
+}
+
 export const api = {
+  async init() {
+    await ensureData()
+  },
+
   dashboard: {
     async summary() {
+      await ensureData()
       const [totalProducts, sales, lowStock, totalWorkers] = await Promise.all([
         db.products.count(),
         db.sales.toArray(),
@@ -15,11 +29,13 @@ export const api = {
       return { totalProducts, totalSales: sales.length, revenue, lowStock, totalWorkers }
     },
     async recentSales() {
+      await ensureData()
       const sales = await db.sales.orderBy('sold_at').reverse().limit(10).toArray()
       const products = await db.products.toArray()
       const productMap = new Map(products.map(p => [p.id, p]))
       return sales.map(s => ({
         ...s,
+        id: s.id!,
         product_name: productMap.get(s.product_id)?.name || '',
       }))
     },
@@ -27,20 +43,38 @@ export const api = {
 
   products: {
     async list() {
+      await ensureData()
       return db.products.orderBy('id').toArray()
     },
     async sync() {
       const res = await fetch(`${API_BASE}/api/products`)
-      const products: Product[] = await res.json()
+      if (!res.ok) throw new Error(`خطأ في التحميل: ${res.status}`)
+      const data = await res.json()
+      if (!Array.isArray(data) || data.length === 0) throw new Error('لا توجد منتجات متاحة')
       const now = new Date().toISOString()
-      await db.products.bulkPut(
-        products.map(p => ({
-          ...p,
-          price: Number(p.price),
-          updated_at: now,
-        }))
-      )
-      await seedInventory()
+      const products: Product[] = data.map((p: any) => ({
+        id: Number(p.id),
+        name: String(p.name || ''),
+        description: String(p.description || ''),
+        price: Number(p.price) || 0,
+        ingredients: String(p.ingredients || ''),
+        image: p.image || null,
+        category: String(p.category || ''),
+        created_at: p.created_at || now,
+        updated_at: now,
+      }))
+      for (const p of products) {
+        const exists = await db.products.get(p.id)
+        if (exists) {
+          await db.products.update(p.id, p)
+        } else {
+          await db.products.add(p)
+        }
+        const inv = await db.inventory.where('product_id').equals(p.id).first()
+        if (!inv) {
+          await db.inventory.add({ product_id: p.id, quantity: 50, updated_at: now })
+        }
+      }
       return { message: `تمت مزامنة ${products.length} منتج` }
     },
     async update(id: number, data: Partial<Product>) {
@@ -56,11 +90,14 @@ export const api = {
 
   inventory: {
     async list() {
+      await ensureData()
       const items = await db.inventory.toArray()
       const products = await db.products.toArray()
       const productMap = new Map(products.map(p => [p.id, p]))
       return items.map(i => ({
         ...i,
+        id: i.id!,
+        product_id: i.product_id,
         product_name: productMap.get(i.product_id)?.name || '',
         category: productMap.get(i.product_id)?.category || '',
         price: productMap.get(i.product_id)?.price || 0,
@@ -85,18 +122,20 @@ export const api = {
 
   sales: {
     async list() {
+      await ensureData()
       const sales = await db.sales.orderBy('sold_at').reverse().toArray()
       const products = await db.products.toArray()
       const productMap = new Map(products.map(p => [p.id, p]))
       return sales.map(s => ({
         ...s,
+        id: s.id!,
         product_name: productMap.get(s.product_id)?.name || '',
         category: productMap.get(s.product_id)?.category || '',
       }))
     },
     async create(product_id: number, quantity: number, notes?: string) {
       const product = await db.products.get(product_id)
-      if (!product) throw new Error('Product not found')
+      if (!product) throw new Error('المنتج غير موجود')
       const total_price = Number(product.price) * quantity
       const now = new Date().toISOString()
       const id = await db.sales.add({
@@ -119,6 +158,7 @@ export const api = {
 
   workers: {
     async list() {
+      await ensureData()
       return db.workers.orderBy('id').toArray()
     },
     async create(data: Omit<Worker, 'id' | 'created_at'>) {
