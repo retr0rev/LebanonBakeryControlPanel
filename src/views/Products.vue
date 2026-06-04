@@ -24,11 +24,6 @@ const categoryColors: Record<string, string> = {
   'كعك': '#ff6f00',
 }
 
-function categoryStyle(cat: string) {
-  const bg = categoryColors[cat] || '#795548'
-  return { background: bg }
-}
-
 const groupedProducts = computed(() => {
   const groups: Record<string, Product[]> = {}
   for (const p of products.value) {
@@ -67,12 +62,7 @@ async function syncProducts() {
 
 function startEdit(product: Product) {
   editProduct.value = product
-  editForm.value = {
-    name: product.name,
-    description: product.description,
-    price: product.price,
-    category: product.category,
-  }
+  editForm.value = { name: product.name, description: product.description, price: product.price, category: product.category }
   showModal.value = true
 }
 
@@ -104,12 +94,11 @@ async function deleteProduct(id: number) {
 </script>
 
 <template>
-  <div class="page">
+  <div>
     <div class="page-header">
-      <h2>المنتجات</h2>
-      <button class="btn" @click="syncProducts" :disabled="syncing">
-        <span>{{ syncing ? '⏳' : '🔄' }}</span>
-        {{ syncing ? 'جاري التزامن...' : 'مزامنة من الموقع' }}
+      <h2>📦 المنتجات</h2>
+      <button class="btn small" @click="syncProducts" :disabled="syncing">
+        {{ syncing ? '⏳' : '🔄' }}
       </button>
     </div>
     <p v-if="message" class="message">{{ message }}</p>
@@ -117,32 +106,36 @@ async function deleteProduct(id: number) {
     <div v-if="loading" class="loading">جاري التحميل...</div>
 
     <div v-else class="product-groups">
-      <div v-for="(group, category) in groupedProducts" :key="category" class="category-group">
-        <div class="category-header" :style="categoryStyle(category)">
-          <h3>{{ category }}</h3>
-          <span class="count">{{ group.length }} منتج</span>
+      <div v-for="(group, category) in groupedProducts" :key="category" style="background: var(--bg-card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 10px;">
+        <div :style="{ background: categoryColors[category] || '#795548', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff' }">
+          <h3 style="margin: 0; color: #fff; font-size: 0.9rem;">{{ category }}</h3>
+          <span style="font-size: 0.7rem; opacity: 0.85; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px;">{{ group.length }}</span>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>الاسم</th>
-              <th>السعر</th>
-              <th>إجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in group" :key="p.id">
-              <td>{{ p.id }}</td>
-              <td class="product-name">{{ p.name }}</td>
-              <td class="price">{{ p.price.toLocaleString('ar-LB') }} ل.س</td>
-              <td class="actions">
-                <button class="btn small" @click="startEdit(p)">تعديل</button>
-                <button class="btn small danger" @click="deleteProduct(p.id)">حذف</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الاسم</th>
+                <th>السعر</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="p in group" :key="p.id">
+                <td>{{ p.id }}</td>
+                <td style="font-weight: 600;">{{ p.name }}</td>
+                <td style="color: var(--primary); font-weight: 700;">{{ p.price.toLocaleString('ar-LB') }} ل.س</td>
+                <td>
+                  <div class="actions">
+                    <button class="btn small" @click="startEdit(p)">تعديل</button>
+                    <button class="btn small danger" @click="deleteProduct(p.id)">حذف</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -165,54 +158,3 @@ async function deleteProduct(id: number) {
     </Transition>
   </div>
 </template>
-
-<style scoped>
-.product-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.category-group {
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  background: var(--bg-card);
-}
-
-.category-header {
-  padding: 0.8rem 1.2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #fff;
-}
-
-.category-header h3 {
-  margin: 0;
-  color: #fff;
-  font-size: 1rem;
-}
-
-.count {
-  font-size: 0.8rem;
-  opacity: 0.85;
-  background: rgba(255,255,255,0.2);
-  padding: 0.2rem 0.7rem;
-  border-radius: 20px;
-}
-
-.category-group table {
-  box-shadow: none;
-  border-radius: 0;
-}
-
-.product-name {
-  font-weight: 600;
-}
-
-.price {
-  font-weight: 700;
-  color: var(--primary);
-}
-</style>
