@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { api } from '@/api'
 
 interface Worker {
-  id: number
+  id?: number
   name: string
   job: string
   weekly_salary: number
@@ -50,7 +50,7 @@ function closeModal() {
 async function save() {
   if (!form.value.name || !form.value.job || !form.value.weekly_salary) return
   try {
-    if (editingWorker.value) {
+    if (editingWorker.value && editingWorker.value.id != null) {
       await api.workers.update(editingWorker.value.id, form.value)
     } else {
       await api.workers.create(form.value)
@@ -102,7 +102,7 @@ async function deleteWorker(id: number) {
           <td>{{ w.phone }}</td>
           <td class="actions">
             <button class="btn small" @click="openEdit(w)">تعديل</button>
-            <button class="btn small danger" @click="deleteWorker(w.id)">حذف</button>
+            <button class="btn small danger" @click="deleteWorker(w.id!)">حذف</button>
           </td>
         </tr>
       </tbody>

@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { api } from '@/api'
 
 interface Sale {
-  id: number
+  id?: number
   product_id: number
   product_name: string
   quantity: number

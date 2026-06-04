@@ -5,8 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "tsx server/index.ts",
-    "dev:all": "concurrently -n server,client -c blue,green \"npm run server\" \"npm run dev\"",
     "build:android": "vite build && npx cap copy && cd android && ./gradlew assembleDebug",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
@@ -23,10 +21,7 @@
     "@capacitor/android": "^8.4.0",
     "@capacitor/cli": "^8.4.0",
     "@capacitor/core": "^8.4.0",
-    "cors": "^2.8.6",
     "dexie": "^4.4.3",
-    "express": "^5.2.1",
-    "pg": "^8.21.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
@@ -34,11 +29,8 @@
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "@tsconfig/node24": "^24.0.4",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
     "@types/jsdom": "^28.0.1",
     "@types/node": "^24.12.2",
-    "@types/pg": "^8.20.0",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vitejs/plugin-vue-jsx": "^5.1.5",
     "@vitest/eslint-plugin": "^1.6.16",
